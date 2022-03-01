@@ -1,6 +1,6 @@
-# threejs-boilerplate
+# Risograph-grain-shader-template
 
-Simple project set up for three.js experiments
+Template to start the tutorial about risograph grain in Three.js
 
 Prerequisite:
 - [Nodejs, npm](https://nodejs.org/en/)
