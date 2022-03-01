@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import Stats from 'stats-js'
-
-const ASSETS = 'img/'
+import glslify from 'glslify'
+import vertexShader from './shaders/grain.vert'
+import fragmentShader from './shaders/grain.frag'
 
 export default class Scene {
   canvas
@@ -10,29 +10,33 @@ export default class Scene {
   scene
   camera
   controls
-  stats
   width
   height
 
   constructor(el) {
     this.canvas = el
 
-    this.init()
-  }
-
-  init() {
-    this.setStats()
     this.setScene()
     this.setRender()
     this.setCamera()
     this.setControls()
-    this.setAxesHelper()
-    this.setBox()
+    this.setSphere()
 
     this.handleResize()
 
-    // start RAF
     this.events()
+
+    // render our scene
+    this.renderer.render(this.scene, this.camera)
+  }
+
+  /**
+   * This is our scene, we'll add any object
+   * https://threejs.org/docs/?q=scene#api/en/scenes/Scene
+   */
+  setScene() {
+    this.scene = new THREE.Scene()
+    this.scene.background = new THREE.Color(0xffffff)
   }
 
   /**
@@ -47,15 +51,6 @@ export default class Scene {
   }
 
   /**
-   * This is our scene, we'll add any object
-   * https://threejs.org/docs/?q=scene#api/en/scenes/Scene
-   */
-  setScene() {
-    this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color(0xffffff)
-  }
-
-  /**
    * Our Perspective camera, this is the point of view that we'll have
    * of our scene.
    * A perscpective camera is mimicing the human eyes so something far we'll
@@ -64,15 +59,12 @@ export default class Scene {
    */
   setCamera() {
     const aspectRatio = this.width / this.height
-    const fieldOfView = 60
+    const fieldOfView = 50
     const nearPlane = 0.1
     const farPlane = 10000
 
     this.camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane)
-    this.camera.position.y = 5
-    this.camera.position.x = 5
-    this.camera.position.z = 5
-    this.camera.lookAt(0, 0, 0)
+    this.camera.position.set(2.5, 2, 2)
 
     this.scene.add(this.camera)
   }
@@ -83,38 +75,22 @@ export default class Scene {
    */
   setControls() {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    this.controls.autoRotate = true
   }
 
   /**
-   * Axes Helper
-   * https://threejs.org/docs/?q=Axesh#api/en/helpers/AxesHelper
+   * Let's add our mesh with his sphere geometry and basic material
+   * https://threejs.org/docs/?q=sphere#api/en/geometries/SphereGeometry
    */
-  setAxesHelper() {
-    const axesHelper = new THREE.AxesHelper(3)
-    this.scene.add(axesHelper)
-  }
-
-  /**
-   * Create a BoxGeometry
-   * https://threejs.org/docs/?q=box#api/en/geometries/BoxGeometry
-   * with a Basic material
-   * https://threejs.org/docs/?q=mesh#api/en/materials/MeshBasicMaterial
-   */
-  setBox() {
-    const geometry = new THREE.BoxGeometry(1, 1, 1)
-    const material = new THREE.MeshBasicMaterial({ color: 0x000000 })
+  setSphere() {
+    const geometry = new THREE.SphereGeometry(1, 32, 32)
+    const material = new THREE.MeshBasicMaterial({
+      color: 'black',
+      wireframe: true,
+    })
 
     const mesh = new THREE.Mesh(geometry, material)
     this.scene.add(mesh)
-  }
-
-  /**
-   * Build stats to display fps
-   */
-  setStats() {
-    this.stats = new Stats()
-    this.stats.showPanel(0)
-    document.body.appendChild(this.stats.dom)
   }
 
   /**
@@ -135,14 +111,12 @@ export default class Scene {
    */
   draw = now => {
     // now: time in ms
-    this.stats.begin()
-
-    if (this.controls) this.controls.update() // for damping
     this.renderer.render(this.scene, this.camera)
 
-    this.stats.end()
     this.raf = window.requestAnimationFrame(this.draw)
   }
+
+  // EVENTS
 
   /**
    * On resize, we need to adapt our camera based
@@ -156,9 +130,7 @@ export default class Scene {
     this.camera.aspect = this.width / this.height
     this.camera.updateProjectionMatrix()
 
-    const DPR = window.devicePixelRatio ? window.devicePixelRatio : 1
-
-    this.renderer.setPixelRatio(DPR)
+    this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.setSize(this.width, this.height)
   }
 }
