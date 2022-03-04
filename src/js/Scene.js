@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import glslify from 'glslify'
-import vertexShader from './shaders/grain.vert'
-import fragmentShader from './shaders/grain.frag'
+import vertexShader from './vertexShader.glsl'
+import fragmentShader from './fragmentShader.glsl'
 
 export default class Scene {
   canvas
